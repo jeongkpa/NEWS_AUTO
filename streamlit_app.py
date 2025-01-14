@@ -3,6 +3,10 @@ from jinja_utils import generate_press_release_html
 import requests
 import json
 
+# WEBHOOK URL
+## WEBHOOK_URL = "http://203.239.132.7:5678/webhook/3ccfd480-71e7-4d1e-b264-69a651180350"
+## WEBHOOK_URL2 = "https://geniefy.app.n8n.cloud/webhook/3ccfd480-71e7-4d1e-b264-69a651180350"
+
 # 디버깅 모드 플래그
 DEBUG_MODE = False  # 임시로 True로 설정
 
