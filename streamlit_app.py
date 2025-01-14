@@ -18,7 +18,7 @@ def get_ai_generated_text(form_data: dict) -> dict:
     try:
         # webhook으로 데이터 전송
         with st.spinner("AI가 보도자료를 생성하고 있습니다..."):
-            response = requests.post(webhook_url, json=form_data, timeout=20)
+            response = requests.post(webhook_url, json=form_data, timeout=30)
         
         if response.status_code == 200:
             if DEBUG_MODE:
@@ -46,7 +46,9 @@ def get_ai_generated_text(form_data: dict) -> dict:
                     title = result.get("title", "").strip()
                     news_data = result.get("news_data", "").strip()
                     check_data = result.get("check_data", "").strip()
-                    insta_data = result.get("insta_data", "").strip()  # 인스타 데이터 추가
+                    insta_data = result.get("insta_data", "").strip()
+                    facebook_data = result.get("facebook_data", "").strip()
+                    blog_data = result.get("blog_data", "").strip()  # 블로그 데이터 추가
                 else:
                     # 일반 텍스트 응답 처리
                     response_text = response.text.strip()
@@ -56,7 +58,9 @@ def get_ai_generated_text(form_data: dict) -> dict:
                     title = lines[0].strip()
                     news_data = '\n'.join(lines[1:]).strip() if len(lines) > 1 else ""
                     check_data = ""
-                    insta_data = ""  # 인스타 데이터 빈 값으로 초기화
+                    insta_data = ""
+                    facebook_data = ""
+                    blog_data = ""  # 블로그 데이터 빈 값으로 초기화
                 
                 st.success("보도자료가 성공적으로 생성되었습니다!")
                 
@@ -74,7 +78,9 @@ def get_ai_generated_text(form_data: dict) -> dict:
                     "title": title,
                     "news_data": news_data,
                     "check_data": check_data,
-                    "insta_data": insta_data  # 인스타 데이터 추가
+                    "insta_data": insta_data,
+                    "facebook_data": facebook_data,
+                    "blog_data": blog_data  # 블로그 데이터 추가
                 }
                 
             except (json.JSONDecodeError, ValueError) as e:
@@ -146,7 +152,10 @@ def generate_fallback_template(form_data: dict) -> dict:
     return {
         "title": form_data["제목"],
         "news_data": generated_text,
-        "check_data": ""
+        "check_data": "",
+        "insta_data": "",
+        "facebook_data": "",
+        "blog_data": ""
     }
 
 def show_product_release_form():
@@ -167,7 +176,8 @@ def show_product_release_form():
     # 3. 제품명/시리즈명
     product_name = st.text_input(
         "3. **제품명/시리즈명** *",
-        placeholder="예시) 기가바이트 M27QA ICE 게이밍 모니터"
+        placeholder="예시) 기가바이트 M27QA ICE 게이밍 모니터",
+        
     )
     
     # 4. 출시(예정)일
@@ -183,45 +193,41 @@ def show_product_release_form():
     )
     
     # 6. 주요 타깃
-    target = st.text_area(
+    target = st.text_input(
         "6. 주요 타깃",
         placeholder="예시) 화이트 색상의 모니터를 원하는 게이머",
-        height=70
     )
     
     # 7. 주요 특징(세일즈 포인트)
     innovation = st.text_area(
         "7. **주요 특징(세일즈 포인트)** *",
-        placeholder="예시)  \- n27인치에 적합한 해상도인 QHD(2560*1440) 해상도\n- 광시야각 SS IPS\n- 180Hz의 고주사율\n- 응답속도 1ms(MPRT)\n- G-싱크 및 프리싱크 호환\n- DCI-P3 95%의 색재현율\n- 10비트 컬러, VESA HDR 400 지원\n- KVM스위치 내장\n- 3년 무상의 A/S 보증 서비스",
-        height=100
+        placeholder="예시)\n- 27인치에 적합한 해상도인 QHD(2560*1440) 해상도\n- 광시야각 SS IPS\n- 180Hz의 고주사율\n- 응답속도 1ms(MPRT)\n- G-싱크 및 프리싱크 호환\n- DCI-P3 95%의 색재현율\n- 10비트 컬러, VESA HDR 400 지원\n- KVM스위치 내장\n- 3년 무상의 A/S 보증 서비스",
+        height=250
     )
     
     # 8. 주요 특징(디자인)
-    design = st.text_area(
+    design = st.text_input(
         "8. **주요 특징(디자인)** *",
-        placeholder="예시)\n- ICE로 대표되는 기가바이트의 화이트 디자인",
-        height=100
+        placeholder="예시) ICE로 대표되는 기가바이트의 화이트 디자인",
     )
     
     # 9. 세부 스펙 및 성능
     specs = st.text_area(
         "9. 세부 스펙 및 성능",
         placeholder="예시)\n- 게임 편의 기능인 'Game Assist' 제공\n- 오랜 시간 편안한 게이밍을 위한 로우 블루라이트, 플리커 프리 기술 제공",
-        height=120
+        height=100
     )
     
     # 10. 가격 및 판매 정보
-    price_info = st.text_area(
+    price_info = st.text_input(
         "10. 가격 및 판매 정보",
         placeholder="예시) 자세한 정보는 홈페이지를 통해 확인 가능합니다",
-        height=70
     )
     
     # 11. 맺음말
-    press_quote = st.text_area(
+    press_quote = st.text_input(
         "11. 맺음말",
-        placeholder="예시)\n- \"앞으로도 더 좋은 제품으로 보답하겠습니다.\" 등\n- AMD, NVIDIA, Intel 등 주요 파트너사의 협업 코멘트.",
-        height=100
+        placeholder="예시) 앞으로도 더 좋은 제품으로 보답하겠습니다.",
     )
 
     return {
@@ -251,7 +257,7 @@ def show_event_release_form():
     company_name = st.text_area(
         "2. **도입부** *",
         placeholder="예시) 국내 PNY Technologies, Inc. 공식 공급원 제이씨현시스템㈜ (대표: 차중석, 차정헌)은 PNY GeForce RTX 4070 이상의 제품(RTX 4090, RTX 40 SUPER, RTX 4070) 구매 고객을 대상으로 Indiana Jones and the Great Circle 게임 코드를 증정하는 프로모션을 진행한다.",
-        height=70
+        height=100
     )
     
     # 3. 행사명
@@ -270,21 +276,21 @@ def show_event_release_form():
     event_details = st.text_area(
         "5. **행사 내용** *",
         placeholder="""예시)\n게임 타이틀 청구 기간은 2025년 1월 30일까지다. 기한 내에 행사 페이지에 등록된 QR 코드를 통해 응모해야 하며, 반드시 구매 영수증을 첨부해야 최종 접수된다.""",
-        height=150
+        height=100
     )
     
     # 6. 대상 제품
     target_products = st.text_area(
         "6. **대상 제품** *",
         placeholder="예시)신작 게임을 증정하는 PNY RTX 40 시리즈 그래픽카드는 지포스 RTX 4090, RTX 4080 SUPER, RTX 4080, RTX 4070 Ti SUPER, RTX 4070 Ti, RTX 4070 SUPER, RTX 4070 모델이다.",
-        height=200
+        height=70
     )
     
     # 7. 유의사항
     notes = st.text_area(
         "7. 유의사항",
-        placeholder="예시)\n- 재고 소진 시 조기 종료될 수 있음\n- 일부 제품은 행사에서 제외될 수 있음\n- 사은품은 추후 배송될 수 있음",
-        height=100
+        placeholder="예시)\n- 재고 소진 시 조기 종료될 수 있음\n- 일부 제품은 행행행사에서 제외될 수 있음\n- 사은품은 추후 배송될 수 있음",
+        height=110
     )
     
     # 8. 맺음말
@@ -333,10 +339,10 @@ def show_result(generated_data, form_data, container):
         st.markdown("""
             <style>
                 .stTabs [data-baseweb="tab-panel"] {
-                    padding: 4rem;
+                    padding: 0.5rem;
                 }
                 .stMarkdown {
-                    padding: 2rem 0;
+                    padding: 0;
                 }
                 /* HTML 미리보기 컨테이너가 부모 너비에 맞게 조정되도록 */
                 iframe {
@@ -356,7 +362,7 @@ def show_result(generated_data, form_data, container):
                     border: 1px solid #dbdbdb;
                     border-radius: 8px;
                     padding: 20px;
-                    margin: 20px 0;
+                    margin: 10px 0;
                     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
                 }
                 .instagram-post pre {
@@ -365,6 +371,11 @@ def show_result(generated_data, form_data, container):
                     margin: 0;
                     padding: 10px;
                 }
+                /* 서브헤더 여백 조정 */
+                .stTabs + div > .stMarkdown > h3 {
+                    margin-top: 0.5rem;
+                    margin-bottom: 0.5rem;
+                }
             </style>
         """, unsafe_allow_html=True)
         
@@ -372,7 +383,7 @@ def show_result(generated_data, form_data, container):
         tab1, tab2 = st.tabs(["🌐 HTML 미리보기", "📝 텍스트 미리보기"])
         
         with tab1:
-            st.subheader("HTML 미리보기")
+            st.markdown("<h3 style='margin: 0.5rem 0;'>HTML 미리보기</h3>", unsafe_allow_html=True)
             rendered_html = generate_press_release_html(
                 title=generated_data["title"],
                 body_text=generated_data["news_data"]
@@ -386,12 +397,11 @@ def show_result(generated_data, form_data, container):
                     </div>
                 </div>
                 """,
-                height=1200,
+                height=800,
                 scrolling=True
             )
             
             # 다운로드 버튼 섹션
-            st.markdown("---")
             st.subheader("파일 다운로드")
             col1, col2 = st.columns(2)
             
@@ -420,11 +430,11 @@ def show_result(generated_data, form_data, container):
             
             # 인스타그램 포스팅 미리보기
             if generated_data.get("insta_data"):
-                st.markdown("---")
-                st.subheader("인스타그램 포스팅 미리보기")
-                with st.expander("인스타그램 포스팅 보기", expanded=False):
+                st.subheader("❤️ 인스타 및 틱톡 미리보기")
+                with st.expander("인스타 및 틱톡 보기", expanded=False):
                     posts = generated_data["insta_data"].strip().split("\n\n\n")
-                    for i, post in enumerate(posts, 1):
+                    # 처음 2개의 포스팅만 표시
+                    for i, post in enumerate(posts[:2], 1):
                         if post.strip():
                             st.markdown(f"""
                                 <div class="instagram-post">
@@ -433,18 +443,39 @@ def show_result(generated_data, form_data, container):
                                 </div>
                             """, unsafe_allow_html=True)
             
+            # Facebook 포스팅 미리보기
+            if generated_data.get("facebook_data"):
+                st.subheader("💙 페이스북 미리보기")
+                with st.expander("페이스북 포스팅 보기", expanded=False):
+                    st.markdown(f"""
+                        <div class="instagram-post">
+                            <pre>{generated_data["facebook_data"].strip()}</pre>
+                        </div>
+                    """, unsafe_allow_html=True)
+            
+            # 네이버 블로그 미리보기
+            if generated_data.get("blog_data"):
+                st.subheader("💚 네이버 블로그 미리보기")
+                with st.expander("블로그 포스팅 보기", expanded=False):
+                    st.markdown(f"""
+                        <div class="instagram-post">
+                            <pre><strong>{generated_data["title"]}</strong>
+                            <br>
+                            <br>
+{generated_data["blog_data"].strip()}</pre>
+                        </div>
+                    """, unsafe_allow_html=True)
+            
             # 검증 데이터가 있는 경우 표시
             if generated_data["check_data"]:
-                st.markdown("---")
-                st.subheader("입력 데이터 검증 결과")
-                st.markdown(generated_data["check_data"])
+                st.subheader("입력 데이터 검증 및 조언")
+                with st.expander("검증 결과 보기", expanded=False):
+                    st.markdown(generated_data["check_data"])
             
         with tab2:
             st.subheader("생성된 보도자료")
-            st.markdown("---")
             # 제목 표시
             st.markdown(f"**제목:** {generated_data['title']}")
-            st.markdown("---")
             # 본문 표시
             st.markdown(
                 f"""<div style="padding: 4rem;">
@@ -452,20 +483,20 @@ def show_result(generated_data, form_data, container):
                 </div>""",
                 unsafe_allow_html=True
             )
-            st.markdown("---")
             
             # 인스타그램 포스팅 표시
             if generated_data.get("insta_data"):
                 st.subheader("인스타그램 포스팅")
                 with st.expander("인스타그램 포스팅 보기", expanded=False):
-                    st.markdown(generated_data["insta_data"])
-                st.markdown("---")
+                    posts = generated_data["insta_data"].strip().split("\n\n\n")
+                    # 처음 2개의 포스팅만 표시
+                    st.markdown("\n\n".join(posts[:2]))
             
             # 검증 데이터가 있는 경우 표시
             if generated_data["check_data"]:
                 st.subheader("입력 데이터 검증 결과")
-                st.markdown(generated_data["check_data"])
-                st.markdown("---")
+                with st.expander("검증 결과 보기", expanded=False):
+                    st.markdown(generated_data["check_data"])
 
 def main():
     # 페이지 레이아웃을 centered 모드로 변경 (wide -> centered)
@@ -475,14 +506,28 @@ def main():
         initial_sidebar_state="collapsed"
     )
     
-    # CSS로 전체 페이지에 패딩 추가
+    # CSS로 전체 페이지 스타일 정의
     st.markdown("""
         <style>
+            /* 상단 여백 줄이기 */
+            .block-container {
+                padding-top: 1rem;
+                padding-bottom: 0rem;
+            }
+            /* 제목 여백 조정 */
+            .stTitle {
+                margin-top: -2rem;
+            }
+            /* 기존 스타일 유지 */
             .main > div {
                 padding-left: 8rem;
                 padding-right: 8rem;
                 margin: 0 auto;
             }
+            /* Streamlit 기본 요소 숨기기 */
+            #MainMenu {visibility: hidden;}
+            footer {visibility: hidden;}
+            header {visibility: hidden;}
         </style>
     """, unsafe_allow_html=True)
     
@@ -495,16 +540,27 @@ def main():
         st.session_state["form_data"] = {}
     
     # 보도자료 유형 선택을 container로 감싸서 여백 추가
-    with st.container():
-        release_type = st.selectbox(
-            "보도자료 유형을 선택하세요",
-            ["제품 출시/리뷰 보도자료", "이벤트/행사 보도자료"]
-        )
+    with st.container():        
         st.markdown("""
-            **필수입력 사항(*)**\n\n
-            여러번 호출하여 마음에 드는 보도자료를 생성해보세요.\n
-            작성한 폼은 새로고침만 하지 않으시면 유지됩니다.
-                    """)
+            <div style="font-size: 0.875rem; color: rgb(49, 51, 63); margin-bottom: 0.1rem;">
+            보도자료 유형을 선택하세요
+            </div>
+        """, unsafe_allow_html=True)
+        
+        release_type = st.selectbox(
+            "보도자료 유형",  # 라벨 추가
+            ["제품 출시/리뷰 보도자료", "이벤트/행사 보도자료"],
+            label_visibility="collapsed"  # 라벨을 시각적으로 숨김
+        )
+        
+        st.markdown("""
+            <div class="info-text" style="font-size: 0.875rem;">
+                <strong>필수입력 사항(*)</strong><br>
+                여러번 호출하여 마음에 드는 보도자료를 생성해보세요.<br>
+                작성한 폼은 새로고침만 하지 않으시면 유지됩니다.
+            </div>
+            <br>
+        """, unsafe_allow_html=True)
     
     # 폼을 container로 감싸서 여백 추가
     form_container = st.container()
@@ -515,10 +571,9 @@ def main():
             else:
                 form_data = show_event_release_form()
 
-            submitted = st.form_submit_button("AI 보도자료 생성")
-    
-    # 결과 컨테이너도 여백 추가
-    result_container = st.container()
+            submitted = st.form_submit_button("AI 보도자료 생성", use_container_width=True)
+    # 여백 추가
+    st.markdown("<div style='margin-bottom: 2rem;'></div>", unsafe_allow_html=True)
     
     # 폼 제출 처리
     if submitted:
@@ -530,28 +585,6 @@ def main():
             st.error(f"다음 필수 항목을 입력해주세요: {', '.join(empty_required_fields)}")
             return
         
-        # 선택적 필드의 빈 값을 기본값으로 대체
-        if release_type == "제품 출시/리뷰 보도자료":
-            if not form_data["출시일"].strip():
-                form_data["출시일"] = "출시"
-            if not form_data["제품 카테고리"].strip():
-                form_data["제품 카테고리"] = "신제품"
-            if not form_data["주요 타깃"].strip():
-                form_data["주요 타깃"] = "소비자"
-            if not form_data["세부 스펙 및 성능"].strip():
-                form_data["세부 스펙 및 성능"] = "다양한 기능"
-            if not form_data["가격 및 판매 정보"].strip():
-                form_data["가격 및 판매 정보"] = "자세한 정보는 홈페이지를 통해 확인 가능합니다"
-            if not form_data["맺음말"].strip():
-                form_data["맺음말"] = "앞으로도 더 좋은 제품으로 보답하겠습니다"
-        else:
-            if not form_data["대상 제품"].strip():
-                form_data["대상 제품"] = "대상 제품"
-            if not form_data["유의사항"].strip():
-                form_data["유의사항"] = "자세한 내용은 홈페이지를 참고해 주시기 바랍니다"
-            if not form_data["맺음말"].strip():
-                form_data["맺음말"] = "많은 관심과 참여 부탁드립니다"
-        
         # AI 생성 요청
         generated_data = get_ai_generated_text(form_data)
         
@@ -562,9 +595,10 @@ def main():
     
     # 세션 상태에 저장된 텍스트가 있을 경우 결과 표시
     if st.session_state["generated_data"]:
+        result_container = st.container()
         show_result(
             st.session_state["generated_data"], 
-            st.session_state["form_data"], 
+            st.session_state["form_data"],
             result_container
         )
 
